@@ -1,0 +1,1025 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SAMS · ระบบจัดการกิจกรรมในโรงเรียน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1F3A5F;
+    --navy-deep:#12253C;
+    --navy-mid:#294D77;
+    --cream:#FAF6EC;
+    --paper:#FFFFFF;
+    --gold:#C99A2E;
+    --gold-deep:#9C7A22;
+    --brick:#B94A3E;
+    --green:#3F7D58;
+    --slate:#5B6B7C;
+    --line:#E6DFCC;
+    --ink:#22303F;
+    --shadow: 0 8px 24px -12px rgba(18,37,60,.25);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Sarabun',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4,.display,button,.nav-item,.stamp,.tab-btn{font-family:'Prompt',sans-serif;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:'Sarabun',sans-serif;}
+  ::selection{background:var(--gold);color:#fff;}
+
+  /* ===== App shell ===== */
+  #app{min-height:100vh;display:flex;flex-direction:column;}
+
+  .topbar{
+    background:var(--navy-deep);
+    color:#fff;
+    padding:14px 22px;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;
+    border-bottom:3px solid var(--gold);
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:40px;height:40px;border-radius:50%;
+    border:2px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:13px;letter-spacing:.03em;color:var(--gold);
+    transform:rotate(-6deg);
+    background:rgba(201,154,46,.08);
+    flex:none;
+  }
+  .brand-text h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.02em;}
+  .brand-text p{margin:0;font-size:11.5px;color:#B9C6D6;letter-spacing:.03em;}
+
+  .role-switch{display:flex;background:rgba(255,255,255,.08);border-radius:999px;padding:3px;gap:2px;}
+  .role-switch button{
+    border:none;background:transparent;color:#CBD6E3;padding:8px 16px;border-radius:999px;
+    font-size:13.5px;font-weight:600;transition:.15s;
+  }
+  .role-switch button.active{background:var(--gold);color:var(--navy-deep);}
+
+  .student-picker{display:flex;align-items:center;gap:8px;font-size:13px;color:#CBD6E3;}
+  .student-picker select{
+    background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25);
+    border-radius:8px;padding:7px 10px;font-size:13px;
+  }
+  .student-picker select option{color:#111;}
+
+  .body-wrap{display:flex;flex:1;min-height:0;}
+
+  /* ===== Sidebar ===== */
+  .sidebar{
+    width:220px;flex:none;background:var(--navy);color:#fff;
+    padding:18px 12px;display:flex;flex-direction:column;gap:4px;
+  }
+  .nav-eyebrow{font-size:11px;color:#9FB3C8;letter-spacing:.08em;padding:6px 10px 8px;text-transform:uppercase;}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:10px;border:none;background:transparent;color:#DCE5EF;
+    font-size:14.5px;font-weight:500;text-align:left;width:100%;
+  }
+  .nav-item:hover{background:rgba(255,255,255,.06);}
+  .nav-item.active{background:var(--gold);color:var(--navy-deep);font-weight:600;}
+  .nav-item .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.6;flex:none;}
+
+  .content{flex:1;min-width:0;padding:26px 30px 60px;overflow-y:auto;}
+  .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-deep);font-weight:700;margin:0 0 4px;}
+  .page-title{font-size:24px;font-weight:700;margin:0 0 22px;color:var(--navy-deep);}
+
+  /* ===== Cards / stats ===== */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:26px;}
+  .stat-card{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+    box-shadow:var(--shadow);
+  }
+  .stat-card .num{font-family:'Prompt';font-size:28px;font-weight:700;color:var(--navy-deep);}
+  .stat-card .lbl{font-size:12.5px;color:var(--slate);margin-top:2px;}
+
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:22px;}
+  .panel h3{margin:0 0 14px;font-size:15.5px;color:var(--navy-deep);display:flex;align-items:center;justify-content:space-between;}
+  .two-col{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+  @media(max-width:980px){.two-col{grid-template-columns:1fr;}}
+
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px;}
+  .bar-row .name{width:150px;flex:none;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .bar-track{flex:1;height:9px;background:var(--cream);border-radius:6px;overflow:hidden;border:1px solid var(--line);}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold));}
+  .bar-val{width:26px;flex:none;text-align:right;color:var(--slate);font-size:12px;}
+
+  .mini-list{list-style:none;margin:0;padding:0;}
+  .mini-list li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13.5px;}
+  .mini-list li:last-child{border-bottom:none;}
+  .mini-list .d{color:var(--slate);font-size:12px;}
+
+  /* ===== Toolbar / filters ===== */
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .toolbar input[type=text], .toolbar select{
+    border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-size:13.5px;color:var(--ink);
+  }
+  .toolbar input[type=text]{min-width:210px;}
+  .spacer{flex:1;}
+
+  .btn{
+    border-radius:10px;border:1px solid transparent;padding:9px 16px;font-size:13.5px;font-weight:600;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-primary:hover{background:var(--navy-mid);}
+  .btn-gold{background:var(--gold);color:var(--navy-deep);}
+  .btn-gold:hover{background:var(--gold-deep);color:#fff;}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--slate);}
+  .btn-ghost:hover{border-color:var(--navy);color:var(--navy);}
+  .btn-danger{background:#fff;border-color:var(--brick);color:var(--brick);}
+  .btn-danger:hover{background:var(--brick);color:#fff;}
+  .btn-sm{padding:6px 11px;font-size:12.5px;border-radius:8px;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+
+  /* ===== Tables ===== */
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;}
+  table.data{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;}
+  table.data th{
+    text-align:left;background:var(--cream);color:var(--navy-deep);font-family:'Prompt';font-weight:600;
+    font-size:12px;letter-spacing:.02em;padding:11px 14px;border-bottom:2px solid var(--line);white-space:nowrap;
+  }
+  table.data td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  table.data tr:last-child td{border-bottom:none;}
+  table.data tr:hover td{background:#FDFBF5;}
+  .row-actions{display:flex;gap:6px;}
+  .empty-row td{text-align:center;color:var(--slate);padding:34px 10px;font-size:13.5px;}
+
+  /* ===== Stamp badges (signature element) ===== */
+  .stamp{
+    --c: var(--navy);
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:4px 12px;min-height:26px;
+    border:1.6px solid var(--c);border-radius:999px;
+    position:relative;
+    font-weight:600;font-size:11.5px;letter-spacing:.02em;
+    color:var(--c);
+    background:color-mix(in srgb, var(--c) 9%, white);
+    transform:rotate(var(--r,-2deg));
+    white-space:nowrap;
+  }
+  .stamp::before{
+    content:"";position:absolute;inset:2.5px;border:1px dashed var(--c);border-radius:999px;opacity:.55;pointer-events:none;
+  }
+  .status-pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;}
+  .status-pending{background:#F2EEE0;color:var(--gold-deep);}
+  .status-attended{background:#E6F1EA;color:var(--green);}
+  .status-absent{background:#F7E7E5;color:var(--brick);}
+
+  /* passport stamps for student hour view */
+  .passport-row{display:flex;flex-wrap:wrap;gap:14px;}
+  .passport-stamp{
+    --c:var(--navy);
+    width:64px;height:64px;border-radius:50%;border:2px solid var(--c);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:var(--c);background:color-mix(in srgb, var(--c) 8%, white);
+    transform:rotate(var(--r,-4deg));position:relative;flex:none;
+  }
+  .passport-stamp::after{content:"";position:absolute;inset:4px;border:1px dashed var(--c);border-radius:50%;opacity:.5;}
+  .passport-stamp b{font-family:'Prompt';font-size:15px;line-height:1;}
+  .passport-stamp span{font-size:8.5px;line-height:1.2;margin-top:2px;text-align:center;padding:0 4px;}
+
+  /* ===== Cards for student browse ===== */
+  .activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
+  .activity-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;}
+  .activity-card h4{margin:0;font-size:15.5px;color:var(--navy-deep);}
+  .activity-meta{font-size:12.5px;color:var(--slate);display:flex;flex-direction:column;gap:3px;}
+  .activity-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px;border-top:1px dashed var(--line);}
+  .seats{font-size:12px;color:var(--slate);}
+
+  /* ===== Modal ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(18,37,60,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50;}
+  .modal{background:#fff;border-radius:16px;padding:24px 26px;width:100%;max-width:480px;box-shadow:0 30px 60px -20px rgba(0,0,0,.35);max-height:88vh;overflow-y:auto;}
+  .modal h3{margin:0 0 4px;font-size:17px;color:var(--navy-deep);}
+  .modal .sub{font-size:12.5px;color:var(--slate);margin:0 0 18px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--navy-deep);margin-bottom:5px;}
+  .field input,.field select,.field textarea{
+    width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13.5px;color:var(--ink);background:#FDFCF8;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold);}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+  .confirm-text{font-size:14px;line-height:1.6;margin:0 0 4px;}
+
+  .banner-empty{padding:50px 20px;text-align:center;color:var(--slate);}
+  .banner-empty .big{font-size:34px;margin-bottom:6px;}
+
+  a.linklike{color:var(--navy);text-decoration:underline;cursor:pointer;font-weight:600;}
+
+  /* ===== Mobile ===== */
+  @media(max-width:880px){
+    .body-wrap{flex-direction:column;}
+    .sidebar{
+      width:100%;flex-direction:row;overflow-x:auto;padding:10px 12px;gap:6px;
+    }
+    .nav-eyebrow{display:none;}
+    .nav-item{white-space:nowrap;flex:none;}
+    .content{padding:20px 16px 50px;}
+    .field-row{grid-template-columns:1fr;}
+    .two-col{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modalRoot"></div>
+
+<script>
+/* =========================================================
+   SAMS — School Activity Management System (prototype)
+   In-browser demo. Data persists via window.storage (personal).
+   ========================================================= */
+
+/* ---------- constants ---------- */
+const STORAGE_KEY = "sams_prototype_v1";
+const TYPES = [
+  { id:"t1", name:"วิชาการ",         color:"#1F3A5F" },
+  { id:"t2", name:"กีฬา",            color:"#3F7D58" },
+  { id:"t3", name:"จิตอาสา",         color:"#C99A2E" },
+  { id:"t4", name:"ศิลปะ/วัฒนธรรม",  color:"#7B4B94" },
+  { id:"t5", name:"ชุมนุม",          color:"#2E7D82" },
+  { id:"t6", name:"วันสำคัญ",        color:"#B94A3E" },
+];
+const STATUS_LABEL = { pending:"รอเข้าร่วม", attended:"เข้าร่วมแล้ว", absent:"ขาด" };
+const TODAY = "2026-08-15";
+
+/* ---------- seed data ---------- */
+function seedData(){
+  return {
+    teachers:[
+      {id:"T001", name:"ครูสมชาย ใจดี", subject:"วิทยาศาสตร์"},
+      {id:"T002", name:"ครูวิภา ศรีสุข", subject:"ภาษาไทย/ภาษาอังกฤษ"},
+      {id:"T003", name:"ครูอนุชา พงษ์พันธ์", subject:"พลศึกษา"},
+      {id:"T004", name:"ครูมาลี รุ่งเรือง", subject:"ศิลปะ"},
+      {id:"T005", name:"ครูประยุทธ ทองแท้", subject:"สังคมศึกษา"},
+    ],
+    students:[
+      {id:"S001", name:"ด.ช.กันต์ ธนกร", cls:"ม.1", room:"1"},
+      {id:"S002", name:"ด.ญ.พิมพ์ชนก แสงทอง", cls:"ม.1", room:"2"},
+      {id:"S003", name:"ด.ช.ปกรณ์ วงศ์ไทย", cls:"ม.2", room:"1"},
+      {id:"S004", name:"ด.ญ.ณัฐธิดา บุญมี", cls:"ม.2", room:"2"},
+      {id:"S005", name:"ด.ช.ธีรภัทร ศักดิ์สิทธิ์", cls:"ม.3", room:"1"},
+      {id:"S006", name:"ด.ญ.ชนัญชิดา อินทร์แก้ว", cls:"ม.3", room:"2"},
+      {id:"S007", name:"นายวรากร เพชรรัตน์", cls:"ม.4", room:"1"},
+      {id:"S008", name:"นางสาวสุพิชญา มณีวรรณ", cls:"ม.4", room:"2"},
+      {id:"S009", name:"นายกิตติพงษ์ ชัยวัฒน์", cls:"ม.5", room:"1"},
+      {id:"S010", name:"นางสาวอรวรรณ พูลสวัสดิ์", cls:"ม.5", room:"2"},
+      {id:"S011", name:"นายภาณุวัฒน์ สุขเกษม", cls:"ม.6", room:"1"},
+      {id:"S012", name:"นางสาวเบญจวรรณ ศรีสวัสดิ์", cls:"ม.6", room:"2"},
+    ],
+    activities:[
+      {id:"A001", name:"ค่ายวิทยาศาสตร์สัญจร", typeId:"t1", date:"2026-08-20", time:"08:00", location:"ห้องประชุมใหญ่", teacherId:"T001", capacity:40, hours:6},
+      {id:"A002", name:"การแข่งขันกีฬาสี", typeId:"t2", date:"2026-08-25", time:"13:00", location:"สนามกีฬากลาง", teacherId:"T003", capacity:200, hours:4},
+      {id:"A003", name:"จิตอาสาปลูกป่าชายเลน", typeId:"t3", date:"2026-08-22", time:"07:30", location:"ป่าชายเลนชุมชน", teacherId:"T005", capacity:30, hours:5},
+      {id:"A004", name:"ประกวดวาดภาพวันแม่", typeId:"t4", date:"2026-08-11", time:"09:00", location:"ห้องศิลปะ", teacherId:"T004", capacity:25, hours:3},
+      {id:"A005", name:"ชุมนุมหุ่นยนต์", typeId:"t5", date:"2026-08-19", time:"15:30", location:"ห้องคอมพิวเตอร์", teacherId:"T001", capacity:20, hours:2},
+      {id:"A006", name:"วันไหว้ครู", typeId:"t6", date:"2026-08-14", time:"08:00", location:"หอประชุมโรงเรียน", teacherId:"T002", capacity:500, hours:2},
+      {id:"A007", name:"ค่ายอังกฤษ Summer Camp", typeId:"t1", date:"2026-09-05", time:"08:00", location:"อาคารภาษา", teacherId:"T002", capacity:35, hours:8},
+      {id:"A008", name:"ชุมนุมดนตรีไทย", typeId:"t5", date:"2026-08-21", time:"15:30", location:"ห้องดนตรี", teacherId:"T004", capacity:15, hours:2},
+    ],
+    attendance:[
+      // A004 (past, graded)
+      {activityId:"A004", studentId:"S002", status:"attended", score:92, hourCredit:3},
+      {activityId:"A004", studentId:"S004", status:"attended", score:88, hourCredit:3},
+      {activityId:"A004", studentId:"S006", status:"attended", score:95, hourCredit:3},
+      {activityId:"A004", studentId:"S008", status:"attended", score:79, hourCredit:3},
+      {activityId:"A004", studentId:"S010", status:"absent", score:null, hourCredit:0},
+      // A006 (past, big attendance)
+      {activityId:"A006", studentId:"S001", status:"attended", score:null, hourCredit:2},
+      {activityId:"A006", studentId:"S002", status:"attended", score:null, hourCredit:2},
+      {activityId:"A006", studentId:"S003", status:"attended", score:null, hourCredit:2},
+      {activityId:"A006", studentId:"S004", status:"attended", score:null, hourCredit:2},
+      {activityId:"A006", studentId:"S005", status:"attended", score:null, hourCredit:2},
+      {activityId:"A006", studentId:"S006", status:"attended", score:null, hourCredit:2},
+      {activityId:"A006", studentId:"S007", status:"attended", score:null, hourCredit:2},
+      {activityId:"A006", studentId:"S008", status:"absent", score:null, hourCredit:0},
+      // upcoming registrations
+      {activityId:"A001", studentId:"S001", status:"pending", score:null, hourCredit:0},
+      {activityId:"A001", studentId:"S003", status:"pending", score:null, hourCredit:0},
+      {activityId:"A001", studentId:"S005", status:"pending", score:null, hourCredit:0},
+      {activityId:"A001", studentId:"S007", status:"pending", score:null, hourCredit:0},
+      {activityId:"A005", studentId:"S001", status:"pending", score:null, hourCredit:0},
+      {activityId:"A005", studentId:"S003", status:"pending", score:null, hourCredit:0},
+      {activityId:"A005", studentId:"S009", status:"pending", score:null, hourCredit:0},
+      {activityId:"A002", studentId:"S001", status:"pending", score:null, hourCredit:0},
+      {activityId:"A002", studentId:"S002", status:"pending", score:null, hourCredit:0},
+      {activityId:"A002", studentId:"S003", status:"pending", score:null, hourCredit:0},
+      {activityId:"A002", studentId:"S004", status:"pending", score:null, hourCredit:0},
+      {activityId:"A002", studentId:"S005", status:"pending", score:null, hourCredit:0},
+      {activityId:"A002", studentId:"S006", status:"pending", score:null, hourCredit:0},
+      {activityId:"A002", studentId:"S009", status:"pending", score:null, hourCredit:0},
+      {activityId:"A002", studentId:"S010", status:"pending", score:null, hourCredit:0},
+      {activityId:"A003", studentId:"S002", status:"pending", score:null, hourCredit:0},
+      {activityId:"A003", studentId:"S006", status:"pending", score:null, hourCredit:0},
+      {activityId:"A003", studentId:"S010", status:"pending", score:null, hourCredit:0},
+      {activityId:"A003", studentId:"S012", status:"pending", score:null, hourCredit:0},
+      {activityId:"A008", studentId:"S004", status:"pending", score:null, hourCredit:0},
+      {activityId:"A008", studentId:"S008", status:"pending", score:null, hourCredit:0},
+      {activityId:"A008", studentId:"S012", status:"pending", score:null, hourCredit:0},
+    ],
+  };
+}
+
+/* ---------- state ---------- */
+let DB = null;
+let UI = {
+  view: "admin",          // 'admin' | 'student'
+  adminTab: "dashboard",  // dashboard | activities | teachers | students | attendance | reports
+  studentTab: "browse",   // browse | mine | passport
+  studentLoginId: null,
+  attendanceActivityId: null,
+  actSearch: "", actTypeFilter: "",
+  stuSearch: "",
+};
+
+/* ---------- persistence ---------- */
+async function loadDB(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){ DB = JSON.parse(res.value); return; }
+  }catch(e){ /* not found or storage unavailable */ }
+  DB = seedData();
+}
+async function saveDB(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(DB), false); }
+  catch(e){ /* best effort */ }
+}
+
+/* ---------- helpers ---------- */
+const esc = (s)=> String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const byId = (arr,id)=> arr.find(x=>x.id===id);
+const getType = (id)=> TYPES.find(t=>t.id===id);
+const getTeacher = (id)=> byId(DB.teachers,id);
+const getStudent = (id)=> byId(DB.students,id);
+const getActivity = (id)=> byId(DB.activities,id);
+const fmtDate = (d)=>{ const dt=new Date(d+"T00:00:00"); return dt.toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"numeric"}); };
+const regCount = (actId)=> DB.attendance.filter(a=>a.activityId===actId).length;
+const attendedCount = (actId)=> DB.attendance.filter(a=>a.activityId===actId && a.status==="attended").length;
+const studentTotalHours = (sid)=> DB.attendance.filter(a=>a.studentId===sid && a.status==="attended").reduce((s,a)=>s+(a.hourCredit||0),0);
+const rand = (seed)=>{ let x=Math.sin(seed*99)*10000; return x-Math.floor(x); };
+const nextId = (list,prefix)=>{
+  const nums = list.map(x=> parseInt((x.id||"").replace(prefix,""),10)||0);
+  const n = (nums.length? Math.max(...nums):0)+1;
+  return prefix+String(n).padStart(3,"0");
+};
+function stampStyle(color, seedKey){
+  const r = (rand(hashStr(seedKey))*10-5).toFixed(1);
+  return `--c:${color};--r:${r}deg;`;
+}
+function hashStr(s){ let h=0; for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;} return Math.abs(h)||1; }
+function typeStamp(typeId, seedKey){
+  const t = getType(typeId); if(!t) return "";
+  return `<span class="stamp" style="${stampStyle(t.color, seedKey||typeId)}">${esc(t.name)}</span>`;
+}
+function statusPill(status){
+  const map = {pending:"status-pending", attended:"status-attended", absent:"status-absent"};
+  return `<span class="status-pill ${map[status]}">${STATUS_LABEL[status]}</span>`;
+}
+
+/* ---------- generic modal ---------- */
+function openModal(html){
+  document.getElementById("modalRoot").innerHTML = `<div class="modal-overlay" onmousedown="if(event.target===this) closeModal()"><div class="modal">${html}</div></div>`;
+}
+function closeModal(){ document.getElementById("modalRoot").innerHTML = ""; }
+function confirmModal(text, onYesFnName){
+  openModal(`
+    <h3>ยืนยันการลบ</h3>
+    <p class="confirm-text">${text}</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-danger" onclick="${onYesFnName}(); closeModal();">ลบรายการ</button>
+    </div>`);
+}
+
+/* =========================================================
+   RENDER: SHELL
+   ========================================================= */
+function renderApp(){
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    ${renderTopbar()}
+    <div class="body-wrap">
+      ${UI.view==="admin" ? renderAdminSidebar() : renderStudentSidebar()}
+      <div class="content" id="content">${UI.view==="admin" ? renderAdminTab() : renderStudentTab()}</div>
+    </div>
+  `;
+}
+
+function renderTopbar(){
+  const studentOptions = DB.students.map(s=>`<option value="${s.id}" ${UI.studentLoginId===s.id?"selected":""}>${esc(s.name)} (${s.cls}/${s.room})</option>`).join("");
+  return `
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">SAMS</div>
+      <div class="brand-text">
+        <h1>ระบบจัดการกิจกรรมในโรงเรียน</h1>
+        <p>School Activity Management System · เดโมทดลองใช้งาน</p>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      ${UI.view==="student" ? `
+        <div class="student-picker">
+          เข้าสู่ระบบในฐานะ
+          <select onchange="UI.studentLoginId=this.value; renderApp();">
+            ${studentOptions}
+          </select>
+        </div>` : ``}
+      <div class="role-switch">
+        <button class="${UI.view==='admin'?'active':''}" onclick="switchView('admin')">มุมมองผู้ดูแล/ครู</button>
+        <button class="${UI.view==='student'?'active':''}" onclick="switchView('student')">มุมมองนักเรียน</button>
+      </div>
+    </div>
+  </div>`;
+}
+function switchView(v){
+  UI.view=v;
+  if(v==="student" && !UI.studentLoginId){ UI.studentLoginId = DB.students[0].id; }
+  renderApp();
+}
+
+function renderAdminSidebar(){
+  const items = [
+    ["dashboard","แดชบอร์ด"],
+    ["activities","กิจกรรม"],
+    ["attendance","บันทึกผล"],
+    ["teachers","ครู"],
+    ["students","นักเรียน"],
+    ["reports","รายงาน"],
+  ];
+  return `<div class="sidebar">
+    <div class="nav-eyebrow">เมนูผู้ดูแล/ครู</div>
+    ${items.map(([k,label])=>`
+      <button class="nav-item ${UI.adminTab===k?'active':''}" onclick="setAdminTab('${k}')">
+        <span class="dot"></span>${label}
+      </button>`).join("")}
+  </div>`;
+}
+function setAdminTab(tab){ UI.adminTab=tab; renderApp(); }
+
+function renderStudentSidebar(){
+  const items = [
+    ["browse","กิจกรรมทั้งหมด"],
+    ["mine","กิจกรรมของฉัน"],
+    ["passport","สมุดกิจกรรม/ชั่วโมงสะสม"],
+  ];
+  return `<div class="sidebar">
+    <div class="nav-eyebrow">เมนูนักเรียน</div>
+    ${items.map(([k,label])=>`
+      <button class="nav-item ${UI.studentTab===k?'active':''}" onclick="setStudentTab('${k}')">
+        <span class="dot"></span>${label}
+      </button>`).join("")}
+  </div>`;
+}
+function setStudentTab(tab){ UI.studentTab=tab; renderApp(); }
+
+/* =========================================================
+   ADMIN TABS
+   ========================================================= */
+function renderAdminTab(){
+  switch(UI.adminTab){
+    case "dashboard": return renderDashboard();
+    case "activities": return renderActivitiesPage();
+    case "attendance": return renderAttendancePage();
+    case "teachers": return renderTeachersPage();
+    case "students": return renderStudentsPage();
+    case "reports": return renderReportsPage();
+    default: return "";
+  }
+}
+
+/* ---- Dashboard ---- */
+function renderDashboard(){
+  const totalHours = DB.attendance.filter(a=>a.status==="attended").reduce((s,a)=>s+(a.hourCredit||0),0);
+  const upcoming = DB.activities.filter(a=>a.date>=TODAY).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  const popular = [...DB.activities].map(a=>({a,c:regCount(a.id)})).sort((x,y)=>y.c-x.c).slice(0,5);
+  const maxC = Math.max(1, ...popular.map(p=>p.c));
+
+  return `
+    <p class="eyebrow">ภาพรวมระบบ</p>
+    <h2 class="page-title">แดชบอร์ด</h2>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="num">${DB.activities.length}</div><div class="lbl">กิจกรรมทั้งหมด</div></div>
+      <div class="stat-card"><div class="num">${DB.students.length}</div><div class="lbl">นักเรียนในระบบ</div></div>
+      <div class="stat-card"><div class="num">${DB.teachers.length}</div><div class="lbl">ครูผู้ดูแลกิจกรรม</div></div>
+      <div class="stat-card"><div class="num">${totalHours}</div><div class="lbl">ชั่วโมงกิจกรรมที่มอบแล้ว</div></div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <h3>กิจกรรมยอดนิยม <span style="font-size:11px;color:var(--slate);font-weight:400;">เรียงตามจำนวนผู้สมัคร</span></h3>
+        ${popular.map(p=>`
+          <div class="bar-row">
+            <div class="name">${esc(p.a.name)}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${(p.c/maxC*100).toFixed(0)}%"></div></div>
+            <div class="bar-val">${p.c}</div>
+          </div>`).join("") || "<p style='color:var(--slate);font-size:13px;'>ยังไม่มีข้อมูล</p>"}
+      </div>
+      <div class="panel">
+        <h3>กิจกรรมที่กำลังจะถึง</h3>
+        <ul class="mini-list">
+          ${upcoming.map(a=>`
+            <li>
+              <span>${typeStamp(a.typeId,a.id)} ${esc(a.name)}</span>
+              <span class="d">${fmtDate(a.date)}</span>
+            </li>`).join("") || "<li>ไม่มีกิจกรรมที่จะถึง</li>"}
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+/* ---- Activities CRUD ---- */
+function renderActivitiesPage(){
+  return `
+    <p class="eyebrow">จัดการกิจกรรม</p>
+    <h2 class="page-title">กิจกรรม</h2>
+    <div class="toolbar">
+      <input type="text" id="actSearchInput" placeholder="ค้นหาชื่อกิจกรรม..." value="${esc(UI.actSearch)}" oninput="UI.actSearch=this.value; renderActivitiesTable();">
+      <select id="actTypeFilter" onchange="UI.actTypeFilter=this.value; renderActivitiesTable();">
+        <option value="">ทุกประเภท</option>
+        ${TYPES.map(t=>`<option value="${t.id}" ${UI.actTypeFilter===t.id?"selected":""}>${t.name}</option>`).join("")}
+      </select>
+      <div class="spacer"></div>
+      <button class="btn btn-gold" onclick="openActivityForm()">+ เพิ่มกิจกรรม</button>
+    </div>
+    <div id="activitiesTableWrap">${activitiesTableHtml()}</div>
+  `;
+}
+function renderActivitiesTable(){
+  document.getElementById("activitiesTableWrap").innerHTML = activitiesTableHtml();
+}
+function activitiesTableHtml(){
+  let list = DB.activities.slice();
+  if(UI.actSearch.trim()) list = list.filter(a=>a.name.includes(UI.actSearch.trim()));
+  if(UI.actTypeFilter) list = list.filter(a=>a.typeId===UI.actTypeFilter);
+  list.sort((a,b)=>a.date.localeCompare(b.date));
+
+  const rows = list.map(a=>{
+    const t = getTeacher(a.teacherId);
+    const rc = regCount(a.id);
+    return `<tr>
+      <td>${typeStamp(a.typeId,a.id)}</td>
+      <td><strong>${esc(a.name)}</strong></td>
+      <td>${fmtDate(a.date)} · ${esc(a.time)}</td>
+      <td>${esc(a.location)}</td>
+      <td>${t?esc(t.name):"—"}</td>
+      <td>${rc}/${a.capacity}</td>
+      <td>${a.hours} ชม.</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openActivityForm('${a.id}')">แก้ไข</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmModal('ลบกิจกรรม “${esc(a.name)}”? ข้อมูลการเข้าร่วมที่เกี่ยวข้องจะถูกลบด้วย','deleteActivity_${a.id}')">ลบ</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+
+  window["deleteActivity_placeholder"] = null;
+  list.forEach(a=>{ window["deleteActivity_"+a.id] = ()=> deleteActivity(a.id); });
+
+  return `<div class="table-wrap"><table class="data">
+    <thead><tr><th>ประเภท</th><th>ชื่อกิจกรรม</th><th>วัน-เวลา</th><th>สถานที่</th><th>ครูผู้ดูแล</th><th>ผู้สมัคร</th><th>ชั่วโมง</th><th>จัดการ</th></tr></thead>
+    <tbody>${rows || `<tr class="empty-row"><td colspan="8">ไม่พบกิจกรรมที่ค้นหา</td></tr>`}</tbody>
+  </table></div>`;
+}
+function openActivityForm(id){
+  const a = id ? getActivity(id) : null;
+  openModal(`
+    <h3>${a? "แก้ไขกิจกรรม":"เพิ่มกิจกรรมใหม่"}</h3>
+    <p class="sub">กรอกรายละเอียดกิจกรรมให้ครบถ้วน</p>
+    <form onsubmit="saveActivity(event,'${id||''}')">
+      <div class="field"><label>ชื่อกิจกรรม</label><input required name="name" value="${a?esc(a.name):''}"></div>
+      <div class="field-row">
+        <div class="field"><label>ประเภทกิจกรรม</label>
+          <select name="typeId">${TYPES.map(t=>`<option value="${t.id}" ${a&&a.typeId===t.id?"selected":""}>${t.name}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>ครูผู้ดูแล</label>
+          <select name="teacherId">${DB.teachers.map(t=>`<option value="${t.id}" ${a&&a.teacherId===t.id?"selected":""}>${t.name}</option>`).join("")}</select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>วันที่จัด</label><input required type="date" name="date" value="${a?a.date:''}"></div>
+        <div class="field"><label>เวลา</label><input required type="time" name="time" value="${a?a.time:'08:00'}"></div>
+      </div>
+      <div class="field"><label>สถานที่</label><input required name="location" value="${a?esc(a.location):''}"></div>
+      <div class="field-row">
+        <div class="field"><label>จำนวนรับสมัครสูงสุด</label><input required type="number" min="1" name="capacity" value="${a?a.capacity:30}"></div>
+        <div class="field"><label>ชั่วโมงกิจกรรมที่ได้รับ</label><input required type="number" min="0" name="hours" value="${a?a.hours:2}"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+        <button type="submit" class="btn btn-primary">บันทึกกิจกรรม</button>
+      </div>
+    </form>
+  `);
+}
+function saveActivity(ev,id){
+  ev.preventDefault();
+  const f = ev.target;
+  const obj = {
+    id: id || nextId(DB.activities,"A"),
+    name: f.name.value.trim(),
+    typeId: f.typeId.value,
+    teacherId: f.teacherId.value,
+    date: f.date.value,
+    time: f.time.value,
+    location: f.location.value.trim(),
+    capacity: parseInt(f.capacity.value,10)||1,
+    hours: parseInt(f.hours.value,10)||0,
+  };
+  if(id){ const idx = DB.activities.findIndex(a=>a.id===id); DB.activities[idx]=obj; }
+  else { DB.activities.push(obj); }
+  saveDB(); closeModal(); renderApp();
+}
+function deleteActivity(id){
+  DB.activities = DB.activities.filter(a=>a.id!==id);
+  DB.attendance = DB.attendance.filter(a=>a.activityId!==id);
+  saveDB(); renderApp();
+}
+
+/* ---- Teachers CRUD ---- */
+function renderTeachersPage(){
+  const rows = DB.teachers.map(t=>`
+    <tr>
+      <td>${t.id}</td>
+      <td><strong>${esc(t.name)}</strong></td>
+      <td>${esc(t.subject)}</td>
+      <td>${DB.activities.filter(a=>a.teacherId===t.id).length} กิจกรรม</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openTeacherForm('${t.id}')">แก้ไข</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmModal('ลบครู “${esc(t.name)}”?','deleteTeacher_${t.id}')">ลบ</button>
+        </div>
+      </td>
+    </tr>`).join("");
+  DB.teachers.forEach(t=>{ window["deleteTeacher_"+t.id] = ()=> deleteTeacher(t.id); });
+  return `
+    <p class="eyebrow">จัดการบุคลากร</p>
+    <h2 class="page-title">ครู</h2>
+    <div class="toolbar"><div class="spacer"></div><button class="btn btn-gold" onclick="openTeacherForm()">+ เพิ่มครู</button></div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>รหัส</th><th>ชื่อ-สกุล</th><th>วิชา/กลุ่มสาระ</th><th>ดูแลอยู่</th><th>จัดการ</th></tr></thead>
+      <tbody>${rows || `<tr class="empty-row"><td colspan="5">ยังไม่มีข้อมูลครู</td></tr>`}</tbody>
+    </table></div>
+  `;
+}
+function openTeacherForm(id){
+  const t = id ? getTeacher(id) : null;
+  openModal(`
+    <h3>${t?"แก้ไขข้อมูลครู":"เพิ่มครูใหม่"}</h3>
+    <form onsubmit="saveTeacher(event,'${id||''}')">
+      <div class="field"><label>ชื่อ-สกุล</label><input required name="name" value="${t?esc(t.name):''}"></div>
+      <div class="field"><label>วิชา / กลุ่มสาระ</label><input required name="subject" value="${t?esc(t.subject):''}"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+        <button type="submit" class="btn btn-primary">บันทึก</button>
+      </div>
+    </form>`);
+}
+function saveTeacher(ev,id){
+  ev.preventDefault();
+  const f=ev.target;
+  const obj={ id:id||nextId(DB.teachers,"T"), name:f.name.value.trim(), subject:f.subject.value.trim() };
+  if(id){ const i=DB.teachers.findIndex(t=>t.id===id); DB.teachers[i]=obj; } else DB.teachers.push(obj);
+  saveDB(); closeModal(); renderApp();
+}
+function deleteTeacher(id){
+  DB.teachers = DB.teachers.filter(t=>t.id!==id);
+  saveDB(); renderApp();
+}
+
+/* ---- Students CRUD ---- */
+function renderStudentsPage(){
+  return `
+    <p class="eyebrow">จัดการนักเรียน</p>
+    <h2 class="page-title">นักเรียน</h2>
+    <div class="toolbar">
+      <input type="text" placeholder="ค้นหาชื่อนักเรียน..." value="${esc(UI.stuSearch)}" oninput="UI.stuSearch=this.value; renderStudentsTable();">
+      <div class="spacer"></div>
+      <button class="btn btn-gold" onclick="openStudentForm()">+ เพิ่มนักเรียน</button>
+    </div>
+    <div id="studentsTableWrap">${studentsTableHtml()}</div>
+  `;
+}
+function renderStudentsTable(){ document.getElementById("studentsTableWrap").innerHTML = studentsTableHtml(); }
+function studentsTableHtml(){
+  let list = DB.students.slice();
+  if(UI.stuSearch.trim()) list = list.filter(s=>s.name.includes(UI.stuSearch.trim()));
+  list.sort((a,b)=>a.id.localeCompare(b.id));
+  const rows = list.map(s=>`
+    <tr>
+      <td>${s.id}</td>
+      <td><strong>${esc(s.name)}</strong></td>
+      <td>${s.cls}/${s.room}</td>
+      <td>${studentTotalHours(s.id)} ชม.</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openStudentForm('${s.id}')">แก้ไข</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmModal('ลบนักเรียน “${esc(s.name)}”?','deleteStudent_${s.id}')">ลบ</button>
+        </div>
+      </td>
+    </tr>`).join("");
+  list.forEach(s=>{ window["deleteStudent_"+s.id] = ()=> deleteStudent(s.id); });
+  return `<div class="table-wrap"><table class="data">
+    <thead><tr><th>รหัส</th><th>ชื่อ-สกุล</th><th>ชั้น/ห้อง</th><th>ชั่วโมงสะสม</th><th>จัดการ</th></tr></thead>
+    <tbody>${rows || `<tr class="empty-row"><td colspan="5">ไม่พบนักเรียนที่ค้นหา</td></tr>`}</tbody>
+  </table></div>`;
+}
+function openStudentForm(id){
+  const s = id ? getStudent(id) : null;
+  openModal(`
+    <h3>${s?"แก้ไขข้อมูลนักเรียน":"เพิ่มนักเรียนใหม่"}</h3>
+    <form onsubmit="saveStudent(event,'${id||''}')">
+      <div class="field"><label>ชื่อ-สกุล</label><input required name="name" value="${s?esc(s.name):''}"></div>
+      <div class="field-row">
+        <div class="field"><label>ระดับชั้น</label><input required name="cls" placeholder="เช่น ม.2" value="${s?esc(s.cls):''}"></div>
+        <div class="field"><label>ห้อง</label><input required name="room" value="${s?esc(s.room):''}"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+        <button type="submit" class="btn btn-primary">บันทึก</button>
+      </div>
+    </form>`);
+}
+function saveStudent(ev,id){
+  ev.preventDefault();
+  const f=ev.target;
+  const obj={ id:id||nextId(DB.students,"S"), name:f.name.value.trim(), cls:f.cls.value.trim(), room:f.room.value.trim() };
+  if(id){ const i=DB.students.findIndex(s=>s.id===id); DB.students[i]=obj; } else DB.students.push(obj);
+  saveDB(); closeModal(); renderApp();
+}
+function deleteStudent(id){
+  DB.students = DB.students.filter(s=>s.id!==id);
+  DB.attendance = DB.attendance.filter(a=>a.studentId!==id);
+  saveDB(); renderApp();
+}
+
+/* ---- Attendance / roster ---- */
+function renderAttendancePage(){
+  if(!UI.attendanceActivityId && DB.activities.length){ UI.attendanceActivityId = DB.activities[0].id; }
+  const options = DB.activities.slice().sort((a,b)=>a.date.localeCompare(b.date))
+    .map(a=>`<option value="${a.id}" ${UI.attendanceActivityId===a.id?"selected":""}>${esc(a.name)} · ${fmtDate(a.date)}</option>`).join("");
+  return `
+    <p class="eyebrow">บันทึกผลการเข้าร่วม</p>
+    <h2 class="page-title">บันทึกผล</h2>
+    <div class="toolbar">
+      <select onchange="UI.attendanceActivityId=this.value; renderAttendanceRoster();">${options}</select>
+      <div class="spacer"></div>
+      <button class="btn btn-gold" onclick="openAddToRoster()">+ เพิ่มนักเรียนเข้าร่วม</button>
+    </div>
+    <div id="rosterWrap">${rosterHtml()}</div>
+  `;
+}
+function renderAttendanceRoster(){ document.getElementById("rosterWrap").innerHTML = rosterHtml(); }
+function rosterHtml(){
+  const a = getActivity(UI.attendanceActivityId);
+  if(!a) return `<div class="banner-empty">ยังไม่มีกิจกรรมในระบบ</div>`;
+  const roster = DB.attendance.filter(x=>x.activityId===a.id);
+  const rows = roster.map(r=>{
+    const s = getStudent(r.studentId);
+    if(!s) return "";
+    return `<tr>
+      <td>${s.id}</td>
+      <td><strong>${esc(s.name)}</strong></td>
+      <td>${s.cls}/${s.room}</td>
+      <td>
+        <select onchange="updateAttendance('${a.id}','${s.id}','status',this.value)">
+          <option value="pending" ${r.status==='pending'?'selected':''}>รอเข้าร่วม</option>
+          <option value="attended" ${r.status==='attended'?'selected':''}>เข้าร่วมแล้ว</option>
+          <option value="absent" ${r.status==='absent'?'selected':''}>ขาด</option>
+        </select>
+      </td>
+      <td><input type="number" min="0" max="100" style="width:70px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;"
+            value="${r.score??''}" placeholder="—" onchange="updateAttendance('${a.id}','${s.id}','score',this.value)"></td>
+      <td><input type="number" min="0" style="width:60px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;"
+            value="${r.hourCredit??0}" onchange="updateAttendance('${a.id}','${s.id}','hourCredit',this.value)"></td>
+      <td><button class="btn btn-danger btn-sm" onclick="confirmModal('นำ “${esc(s.name)}” ออกจากรายชื่อกิจกรรมนี้?','removeRoster_${a.id}_${s.id}')">นำออก</button></td>
+    </tr>`;
+  }).join("");
+  roster.forEach(r=>{ window[`removeRoster_${a.id}_${r.studentId}`] = ()=> removeFromRoster(a.id,r.studentId); });
+
+  return `
+    <div class="panel" style="margin-bottom:16px;">
+      <h3>${esc(a.name)} <span style="font-weight:400;font-size:12.5px;color:var(--slate);">${fmtDate(a.date)} · ${esc(a.location)} · ผู้สมัคร ${roster.length}/${a.capacity} · เข้าร่วมแล้ว ${attendedCount(a.id)} คน</span></h3>
+    </div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>รหัส</th><th>ชื่อ-สกุล</th><th>ชั้น/ห้อง</th><th>สถานะ</th><th>คะแนน</th><th>ชั่วโมง</th><th>จัดการ</th></tr></thead>
+      <tbody>${rows || `<tr class="empty-row"><td colspan="7">ยังไม่มีนักเรียนสมัครเข้าร่วมกิจกรรมนี้</td></tr>`}</tbody>
+    </table></div>
+  `;
+}
+function updateAttendance(actId, stuId, field, value){
+  const r = DB.attendance.find(a=>a.activityId===actId && a.studentId===stuId);
+  if(!r) return;
+  if(field==="status"){
+    r.status = value;
+    if(value==="attended" && (!r.hourCredit || r.hourCredit===0)){
+      const a = getActivity(actId); r.hourCredit = a ? a.hours : 0;
+    }
+    if(value==="absent"){ r.hourCredit = 0; }
+  } else if(field==="score"){
+    r.score = value===""? null : parseInt(value,10);
+  } else if(field==="hourCredit"){
+    r.hourCredit = parseInt(value,10)||0;
+  }
+  saveDB(); renderAttendanceRoster();
+}
+function removeFromRoster(actId, stuId){
+  DB.attendance = DB.attendance.filter(a=>!(a.activityId===actId && a.studentId===stuId));
+  saveDB(); renderAttendanceRoster();
+}
+function openAddToRoster(){
+  const a = getActivity(UI.attendanceActivityId);
+  const already = new Set(DB.attendance.filter(x=>x.activityId===a.id).map(x=>x.studentId));
+  const avail = DB.students.filter(s=>!already.has(s.id));
+  openModal(`
+    <h3>เพิ่มนักเรียนเข้าร่วม</h3>
+    <p class="sub">${esc(a.name)}</p>
+    <form onsubmit="addToRoster(event)">
+      <div class="field">
+        <label>เลือกนักเรียน</label>
+        <select name="studentId" required>
+          ${avail.length? avail.map(s=>`<option value="${s.id}">${esc(s.name)} (${s.cls}/${s.room})</option>`).join("") : `<option disabled>นักเรียนทุกคนสมัครแล้ว</option>`}
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+        <button type="submit" class="btn btn-primary" ${avail.length?'':'disabled'}>เพิ่มเข้ารายชื่อ</button>
+      </div>
+    </form>`);
+}
+function addToRoster(ev){
+  ev.preventDefault();
+  const sid = ev.target.studentId.value;
+  DB.attendance.push({activityId:UI.attendanceActivityId, studentId:sid, status:"pending", score:null, hourCredit:0});
+  saveDB(); closeModal(); renderAttendanceRoster();
+}
+
+/* ---- Reports ---- */
+function renderReportsPage(){
+  const leaderboard = DB.students.map(s=>({s,hrs:studentTotalHours(s.id)})).sort((a,b)=>b.hrs-a.hrs).slice(0,10);
+  const actRows = DB.activities.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(a=>{
+    const reg = regCount(a.id), att = attendedCount(a.id);
+    const rate = reg? Math.round(att/reg*100):0;
+    return `<tr>
+      <td>${typeStamp(a.typeId,a.id)}</td>
+      <td><strong>${esc(a.name)}</strong></td>
+      <td>${fmtDate(a.date)}</td>
+      <td>${reg}/${a.capacity}</td>
+      <td>${att}</td>
+      <td>
+        <div class="bar-track" style="width:90px;display:inline-block;vertical-align:middle;margin-right:8px;">
+          <div class="bar-fill" style="width:${rate}%"></div>
+        </div>${rate}%
+      </td>
+    </tr>`;
+  }).join("");
+
+  return `
+    <p class="eyebrow">สรุปข้อมูล</p>
+    <h2 class="page-title">รายงาน</h2>
+    <div class="panel">
+      <h3>อันดับชั่วโมงกิจกรรมสะสม (Top 10)</h3>
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>อันดับ</th><th>นักเรียน</th><th>ชั้น/ห้อง</th><th>ชั่วโมงสะสม</th></tr></thead>
+        <tbody>${leaderboard.map((r,i)=>`<tr><td>${i+1}</td><td><strong>${esc(r.s.name)}</strong></td><td>${r.s.cls}/${r.s.room}</td><td>${r.hrs} ชม.</td></tr>`).join("")}</tbody>
+      </table></div>
+    </div>
+    <div class="panel">
+      <h3>สรุปการเข้าร่วมต่อกิจกรรม</h3>
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>ประเภท</th><th>กิจกรรม</th><th>วันที่</th><th>ผู้สมัคร</th><th>เข้าร่วมแล้ว</th><th>อัตราเข้าร่วม</th></tr></thead>
+        <tbody>${actRows}</tbody>
+      </table></div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   STUDENT VIEW
+   ========================================================= */
+function renderStudentTab(){
+  if(!UI.studentLoginId){ return `<div class="banner-empty">กรุณาเลือกนักเรียนที่ต้องการเข้าสู่ระบบ</div>`; }
+  switch(UI.studentTab){
+    case "browse": return renderStudentBrowse();
+    case "mine": return renderStudentMine();
+    case "passport": return renderStudentPassport();
+    default: return "";
+  }
+}
+
+function renderStudentBrowse(){
+  const sid = UI.studentLoginId;
+  const list = DB.activities.slice().filter(a=>a.date>=TODAY).sort((a,b)=>a.date.localeCompare(b.date));
+  const cards = list.map(a=>{
+    const t = getTeacher(a.teacherId);
+    const reg = regCount(a.id);
+    const mine = DB.attendance.find(x=>x.activityId===a.id && x.studentId===sid);
+    const full = reg>=a.capacity;
+    let actionBtn;
+    if(mine){ actionBtn = `<span class="status-pill status-attended" style="cursor:default;">${mine.status==='pending'?'สมัครแล้ว':STATUS_LABEL[mine.status]}</span>`; }
+    else if(full){ actionBtn = `<button class="btn btn-ghost btn-sm" disabled>เต็มแล้ว</button>`; }
+    else { actionBtn = `<button class="btn btn-gold btn-sm" onclick="studentRegister('${a.id}')">สมัครเข้าร่วม</button>`; }
+    return `<div class="activity-card">
+      ${typeStamp(a.typeId,a.id)}
+      <h4>${esc(a.name)}</h4>
+      <div class="activity-meta">
+        <span><b>วันที่:</b> ${fmtDate(a.date)} · ${esc(a.time)}</span>
+        <span><b>สถานที่:</b> ${esc(a.location)}</span>
+        <span><b>ครูผู้ดูแล:</b> ${t?esc(t.name):"—"}</span>
+        <span><b>ชั่วโมงที่ได้รับ:</b> ${a.hours} ชม.</span>
+      </div>
+      <div class="activity-foot">
+        <span class="seats">รับสมัคร ${reg}/${a.capacity}</span>
+        ${actionBtn}
+      </div>
+    </div>`;
+  }).join("");
+  return `
+    <p class="eyebrow">เข้าสู่ระบบในฐานะ ${esc(getStudent(sid)?.name||"")}</p>
+    <h2 class="page-title">กิจกรรมทั้งหมด</h2>
+    <div class="activity-grid">${cards || `<div class="banner-empty">ยังไม่มีกิจกรรมที่เปิดรับสมัครในขณะนี้</div>`}</div>
+  `;
+}
+function studentRegister(actId){
+  const sid = UI.studentLoginId;
+  if(DB.attendance.some(a=>a.activityId===actId && a.studentId===sid)) return;
+  DB.attendance.push({activityId:actId, studentId:sid, status:"pending", score:null, hourCredit:0});
+  saveDB(); renderApp();
+}
+function studentUnregister(actId){
+  const sid = UI.studentLoginId;
+  DB.attendance = DB.attendance.filter(a=>!(a.activityId===actId && a.studentId===sid));
+  saveDB(); renderApp();
+}
+
+function renderStudentMine(){
+  const sid = UI.studentLoginId;
+  const mine = DB.attendance.filter(a=>a.studentId===sid).map(a=>({...a, act:getActivity(a.activityId)})).filter(x=>x.act)
+    .sort((a,b)=>b.act.date.localeCompare(a.act.date));
+  const rows = mine.map(r=>`
+    <tr>
+      <td>${typeStamp(r.act.typeId, r.act.id)}</td>
+      <td><strong>${esc(r.act.name)}</strong></td>
+      <td>${fmtDate(r.act.date)}</td>
+      <td>${statusPill(r.status)}</td>
+      <td>${r.score!=null? r.score : "—"}</td>
+      <td>${r.hourCredit || 0} ชม.</td>
+      <td>${r.status==='pending' ? `<button class="btn btn-danger btn-sm" onclick="studentUnregister('${r.act.id}')">ยกเลิกสมัคร</button>` : "—"}</td>
+    </tr>`).join("");
+  return `
+    <p class="eyebrow">เข้าสู่ระบบในฐานะ ${esc(getStudent(sid)?.name||"")}</p>
+    <h2 class="page-title">กิจกรรมของฉัน</h2>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>ประเภท</th><th>กิจกรรม</th><th>วันที่</th><th>สถานะ</th><th>คะแนน</th><th>ชั่วโมง</th><th>จัดการ</th></tr></thead>
+      <tbody>${rows || `<tr class="empty-row"><td colspan="7">ยังไม่ได้สมัครกิจกรรมใด ๆ — ไปที่ “กิจกรรมทั้งหมด” เพื่อเริ่มสมัคร</td></tr>`}</tbody>
+    </table></div>
+  `;
+}
+
+function renderStudentPassport(){
+  const sid = UI.studentLoginId;
+  const attended = DB.attendance.filter(a=>a.studentId===sid && a.status==="attended").map(a=>({...a, act:getActivity(a.activityId)})).filter(x=>x.act)
+    .sort((a,b)=>a.act.date.localeCompare(b.act.date));
+  const total = attended.reduce((s,a)=>s+(a.hourCredit||0),0);
+  const stamps = attended.map(a=>`
+    <div class="passport-stamp" style="${stampStyle(getType(a.act.typeId).color, a.act.id+sid)}" title="${esc(a.act.name)}">
+      <b>${a.hourCredit}</b><span>${esc(a.act.name.slice(0,10))}</span>
+    </div>`).join("");
+  return `
+    <p class="eyebrow">เข้าสู่ระบบในฐานะ ${esc(getStudent(sid)?.name||"")}</p>
+    <h2 class="page-title">สมุดกิจกรรม / ชั่วโมงสะสม</h2>
+    <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,240px));">
+      <div class="stat-card"><div class="num">${total}</div><div class="lbl">ชั่วโมงกิจกรรมสะสมทั้งหมด</div></div>
+      <div class="stat-card"><div class="num">${attended.length}</div><div class="lbl">กิจกรรมที่เข้าร่วมแล้ว</div></div>
+    </div>
+    <div class="panel">
+      <h3>ตราประทับกิจกรรมที่สะสมได้</h3>
+      <div class="passport-row">${stamps || `<p style="color:var(--slate);font-size:13px;">ยังไม่มีตราสะสม — เข้าร่วมกิจกรรมแล้วรอครูบันทึกผลเพื่อรับตรา</p>`}</div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+(async function init(){
+  document.getElementById("app").innerHTML = `<div class="banner-empty">กำลังโหลดข้อมูล...</div>`;
+  await loadDB();
+  UI.studentLoginId = DB.students[0]?.id || null;
+  renderApp();
+})();
+</script>
+</body>
+</html>
